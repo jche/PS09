@@ -1,6 +1,6 @@
 ---
 title: "STAT/MATH 495: Problem Set 09"
-author: "WRITE YOUR NAME(S) HERE"
+author: "Jonathan Che"
 date: "2017-11-07"
 output:
   html_document:
@@ -19,15 +19,8 @@ knitr::opts_chunk$set(
 set.seed(76)
 
 library(tidyverse)
+library(proxy)
 ```
-
-
-
-# Collaboration
-
-Please indicate who you collaborated with on this assignment: 
-
-
 
 # Question 1: Run k-means
 
@@ -62,19 +55,19 @@ ggplot(NULL, aes(x=x1, y=x2, col=cluster)) +
 
 1. Run KMC 10 times on `observations_1` and comment on the consistency of the
 results.
-1. Speculate on the root cause of any consistency or inconsistency in the
+2. Speculate on the root cause of any consistency or inconsistency in the
 results.
-1. Run KMC 10 times on `observations_2` and comment on the consistentcy of the
+3. Run KMC 10 times on `observations_2` and comment on the consistentcy of the
 results.
-1. Speculate on the root cause of any consistency or inconsistency in the
+4. Speculate on the root cause of any consistency or inconsistency in the
 results.
 
 **Answers**:
 
-1.
-1.
-1.
-1.
+1. The results are very inconsistent. The observations are consistently partitioned in half by a line, but the line takes on a variety of rotation angles and centers.
+2. Because the points in `observations_1` are essentially randomly scattered, the final clusters returned by the KMC algorithm depend a lot on the initial random cluster assignments of the points. As the algorithm runs, the cluster centers will move away from each other, but will not consistently "travel" to any particular location in the random-scatter grid.
+3. The results are highly consistent (of course, sometimes the cluster labels for the two clusters are flipped).
+4. The points in `observations_2` are more clearly clustered, in some sense. Instead of random scatter over the entire space, they seem to be randomly scattered in the top-right and bottom-left corners of the space. As such, regardless of the initial random positions of the two cluster centers, one center will inevitably end up "stuck" in one of the corners, which would "push" the other center to the other corner (because the points in each corner are closer to each other than they are to the points in the other corner).
 
 
 
@@ -84,18 +77,41 @@ Read ISLR page 388 Algorithm 10.1 and implement k-means clustering from scratch.
 Don't worry about doing it for general $k$; keep it simple and do it for $k=2$
 specifically. Apply it to `observations_2` from above.
 
-```{r}
-# Hint:
-library(proxy)
-A <- data_frame(
-  x1 = c(0, 0.5, 0.75, 1),
-  x2 = c(0, 0.5, 0.75, 1)
-)
-B <- data_frame(
-  x1 = c(1, 0),
-  x2 = c(1, 0)
-)
-distance_matrix <- proxy::dist(x=A, y=B)
-distance_matrix
-apply(distance_matrix, 1, which.min)
+```{r, warning=FALSE}
+set.seed(495)
+
+# Initialize K-Means algorithm by randomly assigning points to two clusters
+rand_clust_assign <- sample(1:2, size=nrow(observations_2), replace=T)
+df <- observations_2 %>%
+  mutate(cluster = rand_clust_assign)
+
+# Compute cluster centroids for both clusters
+centroid_1 <- df %>%
+  filter(cluster == 1) %>%
+  summarize(
+    x1 = mean(x1),
+    x2 = mean(x2)
+  )
+centroid_2 <- df %>%
+  filter(cluster == 2) %>%
+  summarize(
+    x1 = mean(x1),
+    x2 = mean(x2)
+  )
+centroids <- centroid_1 %>%
+  rbind(centroid_2)
+
+# Re-assign points to clusters
+distance_matrix <- proxy::dist(x=observations_2, y=centroids)
+new_clusters <- apply(distance_matrix, 1, which.min)
+centroids <- centroids %>%
+  mutate(cluster = as.factor(1:2))
+df <- df %>%
+  mutate(cluster = as.factor(new_clusters))
+
+# Plot new clusters
+ggplot(NULL, aes(x=x1, y=x2, col=cluster)) +
+  geom_point(data=df) +
+  geom_point(data=centroids, size=5)
 ```
+
