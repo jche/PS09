@@ -79,37 +79,40 @@ specifically. Apply it to `observations_2` from above.
 
 ```{r, warning=FALSE}
 set.seed(495)
+n <- 5   # Naive stopping criterion: iterate 5 times
 
 # Initialize K-Means algorithm by randomly assigning points to two clusters
 rand_clust_assign <- sample(1:2, size=nrow(observations_2), replace=T)
 df <- observations_2 %>%
   mutate(cluster = rand_clust_assign)
 
-# Compute cluster centroids for both clusters
-centroid_1 <- df %>%
-  filter(cluster == 1) %>%
-  summarize(
-    x1 = mean(x1),
-    x2 = mean(x2)
-  )
-centroid_2 <- df %>%
-  filter(cluster == 2) %>%
-  summarize(
-    x1 = mean(x1),
-    x2 = mean(x2)
-  )
-centroids <- centroid_1 %>%
-  rbind(centroid_2)
+for (i in 1:n) {
+  # Compute cluster centroids for both clusters
+  centroid_1 <- df %>%
+    filter(cluster == 1) %>%
+    summarize(
+      x1 = mean(x1),
+      x2 = mean(x2)
+    )
+  centroid_2 <- df %>%
+    filter(cluster == 2) %>%
+    summarize(
+      x1 = mean(x1),
+      x2 = mean(x2)
+    )
+  centroids <- centroid_1 %>%
+    rbind(centroid_2)
+  
+  # Re-assign points to clusters
+  distance_matrix <- proxy::dist(x=observations_2, y=centroids)
+  new_clusters <- apply(distance_matrix, 1, which.min)
+  centroids <- centroids %>%
+    mutate(cluster = as.factor(1:2))
+  df <- df %>%
+    mutate(cluster = as.factor(new_clusters))
+}
 
-# Re-assign points to clusters
-distance_matrix <- proxy::dist(x=observations_2, y=centroids)
-new_clusters <- apply(distance_matrix, 1, which.min)
-centroids <- centroids %>%
-  mutate(cluster = as.factor(1:2))
-df <- df %>%
-  mutate(cluster = as.factor(new_clusters))
-
-# Plot new clusters
+# Plot final clusters
 ggplot(NULL, aes(x=x1, y=x2, col=cluster)) +
   geom_point(data=df) +
   geom_point(data=centroids, size=5)
