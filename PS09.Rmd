@@ -67,7 +67,7 @@ results.
 1. The results are very inconsistent. The observations are consistently partitioned in half by a line, but the line takes on a variety of rotation angles and centers.
 2. Because the points in `observations_1` are essentially randomly scattered, the final clusters returned by the KMC algorithm depend a lot on the initial random cluster assignments of the points. As the algorithm runs, the cluster centers will move away from each other, but will not consistently "travel" to any particular location in the random-scatter grid.
 3. The results are highly consistent (of course, sometimes the cluster labels for the two clusters are flipped).
-4. The points in `observations_2` are more clearly clustered, in some sense. Instead of random scatter over the entire space, they seem to be randomly scattered in the top-right and bottom-left corners of the space. As such, regardless of the initial random positions of the two cluster centers, one center will inevitably end up "stuck" in one of the corners, which would "push" the other center to the other corner (because the points in each corner are closer to each other than they are to the points in the other corner).
+4. The points in `observations_2` are more clearly clustered, in some sense. Instead of random scatter over the entire space, they seem to be randomly scattered in the top-right and bottom-left corners of the space. As such, regardless of the initial random positions of the two cluster centers, the center that starts out closer to the bottom-left will inevitably end up "stuck" in that corner, which would "push" the other center to the other corner (because the points in each corner are closer to each other than they are to the points in the other corner).
 
 
 
